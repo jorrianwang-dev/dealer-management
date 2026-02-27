@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海外经销商管理系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Satisfy&display=swap" rel="stylesheet">
+    <style>
+        /* ===== 配色方案 ===== */
+        :root {
+            --primary-dark: #002D28;      /* 极深绿 - 主色调 */
+            --primary: #1A4D48;            /* 深绿 - 主要按钮/强调 */
+            --primary-light: rgba(26, 77, 72, 0.1);  /* 浅绿背景 */
+            --accent: #E1B87F;             /* 金色 - 强调/CTA */
+            --accent-light: rgba(225, 184, 127, 0.15); /* 浅金背景 */
+            --gray-light: #CCCCCC;         /* 浅灰 - 边框 */
+            --gray-medium: #A9A9A9;        /* 中灰 - 次要文本 */
+            --gray-dark: #666666;          /* 深灰 - 正文 */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8F9FA;
+            --shadow: rgba(0, 45, 40, 0.08);
+            --shadow-hover: rgba(0, 45, 40, 0.12);
+            --shadow-green: rgba(26, 77, 72, 0.15);
+            --shadow-gold: rgba(225, 184, 127, 0.2);
+        }
+
+        /* ===== 全局样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--gray-dark);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: direction 0.3s ease;
+        }
+
+        /* ===== RTL支持（阿拉伯语） ===== */
+        body[dir="rtl"] {
+            direction: rtl;
+        }
+
+        body[dir="rtl"] .logo::before {
+            left: auto;
+            right: 0;
+        }
+
+        body[dir="rtl"] .logo {
+            padding-left: 0;
+            padding-right: 12px;
+        }
+
+        body[dir="rtl"] .card-title {
+            padding-left: 0;
+            padding-right: 12px;
+        }
+
+        body[dir="rtl"] .card-title::before {
+            left: auto;
+            right: 0;
+        }
+
+        /* ===== 启动动画 ===== */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+
+        .splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            text-align: center;
+        }
+
+        .splash-logo svg {
+            width: 400px;
+            height: 140px;
+        }
+
+        .splash-logo text {
+            font-family: 'Satisfy', cursive;
+            font-size: 80px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            fill: var(--accent);
+            stroke: none;
+            animation: revealText 3s ease-out forwards;
+            clip-path: inset(0 100% 0 0);
+        }
+
+        @keyframes revealText {
+            0% {
+                clip-path: inset(0 100% 0 0);
+                opacity: 1;
+            }
+            50% {
+                clip-path: inset(0 0% 0 0);
+                opacity: 1;
+            }
+            85% {
+                clip-path: inset(0 0% 0 0);
+                opacity: 1;
+            }
+            100% {
+                clip-path: inset(0 0% 0 0);
+                opacity: 0;
+            }
+        }
+
+        .app-container {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .app-container.show {
+            opacity: 1;
+        }
+
+        /* ===== 导航栏 ===== */
+        .navbar {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            letter-spacing: -0.02em;
+            position: relative;
+            padding-left: 12px;
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            padding: 0.25rem;
+            border-radius: 10px;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1.25rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--gray-dark);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            background: rgba(26, 77, 72, 0.08);
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px var(--shadow-green);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        /* ===== 按钮样式 ===== */
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--shadow-hover);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: var(--primary-dark);
+        }
+
+        .btn-accent:hover {
+            background: #D4A76B;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(225, 184, 127, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--gray-dark);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--gray-medium);
+        }
+
+        /* ===== 主内容区域 ===== */
+        .main-content {
+            margin-top: 80px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 页面头部 ===== */
+        .page-header {
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: var(--gray-medium);
+            font-weight: 400;
+        }
+
+        /* ===== 卡片样式 ===== */
+        .card {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px var(--shadow);
+            margin-bottom: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 16px var(--shadow-hover);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            position: relative;
+            padding-left: 12px;
+        }
+
+        .card-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* ===== 表格样式 ===== */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        thead {
+            background: var(--bg-secondary);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        th:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        th:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+            font-size: 0.95rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* ===== 状态标签 ===== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.825rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-active {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-review {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-rejected {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* ===== 表单样式 ===== */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--primary-dark);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            background: var(--bg-primary);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 77, 72, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: all 0.2s ease;
+            position: relative;
+            border-left: 4px solid transparent;
+        }
+
+        .stat-card:nth-child(1) {
+            border-left-color: var(--primary);
+        }
+
+        .stat-card:nth-child(2) {
+            border-left-color: var(--accent);
+        }
+
+        .stat-card:nth-child(3) {
+            border-left-color: var(--primary);
+        }
+
+        .stat-card:nth-child(4) {
+            border-left-color: var(--accent);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px var(--shadow-hover);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-medium);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            color: #065F46;
+        }
+
+        /* ===== 模态框 ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: modalFadeIn 0.2s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideUp 0.3s ease;
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-medium);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--gray-dark);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-light);
+        }
+
+        /* ===== 响应式设计 ===== */
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .nav-tabs {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            .nav-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            color: var(--gray-medium);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ===== 操作按钮 ===== */
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(26, 77, 72, 0.08);
+        }
+
+        .delete-btn {
+            color: #DC2626;
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 38, 38, 0.08);
+        }
+
+        /* ===== 语言选择器 ===== */
+        .language-selector {
+            position: relative;
+            margin-right: 1rem;
+        }
+
+        .language-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            color: var(--gray-dark);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .language-btn:hover {
+            background: var(--bg-secondary);
+            border-color: var(--primary);
+        }
+
+        .language-icon {
+            font-size: 1.2rem;
+        }
+
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-hover);
+            min-width: 180px;
+            z-index: 2001;
+            animation: dropdownFadeIn 0.2s ease;
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .language-dropdown.active {
+            display: block;
+        }
+
+        .language-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .language-option:last-child {
+            border-bottom: none;
+        }
+
+        .language-option:hover {
+            background: var(--primary-light);
+        }
+
+        .language-option.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .language-option.active .language-flag {
+            filter: brightness(1.2);
+        }
+
+        .language-flag {
+            font-size: 1.5rem;
+        }
+
+        .language-name {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 启动屏幕 -->
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-logo">
+            <svg viewBox="0 0 400 140">
+                <text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle">
+                    overseas
+                </text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- 主应用容器 -->
+    <div class="app-container" id="appContainer">
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo" data-i18n="appTitle">海外经销商管理系统</div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-page="dashboard" data-i18n="navDashboard">仪表盘</button>
+                <button class="nav-tab" data-page="admission" data-i18n="navAdmission">经销商准入</button>
+                <button class="nav-tab" data-page="operation" data-i18n="navOperation">经销商运营</button>
+                <button class="nav-tab" data-page="exit" data-i18n="navExit">经销商清退</button>
+            </div>
+            <div class="nav-actions">
+                <!-- 语言选择器 -->
+                <div class="language-selector">
+                    <button class="language-btn" id="languageBtn">
+                        <span class="language-icon">🌐</span>
+                        <span id="currentLanguage">中文</span>
+                    </button>
+                    <div class="language-dropdown" id="languageDropdown">
+                        <div class="language-option active" data-lang="zh-CN">
+                            <span class="language-flag">🇨🇳</span>
+                            <span class="language-name">中文</span>
+                        </div>
+                        <div class="language-option" data-lang="en-US">
+                            <span class="language-flag">🇺🇸</span>
+                            <span class="language-name">English</span>
+                        </div>
+                        <div class="language-option" data-lang="es-ES">
+                            <span class="language-flag">🇪🇸</span>
+                            <span class="language-name">Español</span>
+                        </div>
+                        <div class="language-option" data-lang="ar-SA">
+                            <span class="language-flag">🇸🇦</span>
+                            <span class="language-name">العربية</span>
+                        </div>
+                        <div class="language-option" data-lang="ru-RU">
+                            <span class="language-flag">🇷🇺</span>
+                            <span class="language-name">Русский</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="exportData()" data-i18n="btnExport">导出数据</button>
+                <button class="btn btn-primary" onclick="importData()" data-i18n="btnImport">导入数据</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 仪表盘页面 -->
+        <div id="dashboard" class="page active">
+            <div class="page-header">
+                <h1 class="page-title" data-i18n="dashboardTitle">仪表盘</h1>
+                <p class="page-subtitle" data-i18n="dashboardSubtitle">海外经销商全生命周期管理总览</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label" data-i18n="statTotalDealers">总经销商数</div>
+                    <div class="stat-value" id="total-dealers">0</div>
+                    <div class="stat-change"><span data-i18n="statChangeMonth">较上月</span> +0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" data-i18n="statPendingAdmission">准入审核中</div>
+                    <div class="stat-value" id="pending-admission">0</div>
+                    <div class="stat-change" data-i18n="statPendingApplications">待处理申请</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" data-i18n="statActiveDealers">运营中</div>
+                    <div class="stat-value" id="active-dealers">0</div>
+                    <div class="stat-change" data-i18n="statNormalOperation">正常运营</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" data-i18n="statExitDealers">本月清退</div>
+                    <div class="stat-value" id="exit-dealers">0</div>
+                    <div class="stat-change" data-i18n="statExitProcessing">清退处理中</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" data-i18n="recentActivity">最近活动</h2>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-i18n="colDealerName">经销商名称</th>
+                                <th data-i18n="colRegion">区域</th>
+                                <th data-i18n="colStatus">状态</th>
+                                <th data-i18n="colLastUpdate">最后更新</th>
+                                <th data-i18n="colActions">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-activity">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">📊</div>
+                                        <div class="empty-title">暂无数据</div>
+                                        <div class="empty-text">开始添加经销商信息以查看活动</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 经销商准入页面 -->
+        <div id="admission" class="page">
+            <div class="page-header">
+                <h1 class="page-title" data-i18n="admissionTitle">经销商准入管理</h1>
+                <p class="page-subtitle" data-i18n="admissionSubtitle">策略规划与发展</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" data-i18n="admissionListTitle">准入申请列表</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="openAdmissionModal()" data-i18n="btnAdd">+ 新增申请</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-i18n="colDealerName">经销商名称</th>
+                                <th data-i18n="colRegion">区域</th>
+                                <th data-i18n="colModel">模式</th>
+                                <th data-i18n="colInvestor">投资方</th>
+                                <th data-i18n="colFormat">形式</th>
+                                <th data-i18n="colStatus">状态</th>
+                                <th data-i18n="colActions">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admission-list">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">🏢</div>
+                                        <div class="empty-title">暂无准入申请</div>
+                                        <div class="empty-text">点击"新增申请"开始添加经销商准入信息</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 经销商运营页面 -->
+        <div id="operation" class="page">
+            <div class="page-header">
+                <h1 class="page-title" data-i18n="operationTitle">经销商运营管理</h1>
+                <p class="page-subtitle" data-i18n="operationSubtitle">渠道职能与管理</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" data-i18n="operationListTitle">运营中的经销商</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" data-i18n="btnFilter">筛选</button>
+                        <button class="btn btn-primary" onclick="openOperationModal()" data-i18n="btnAddOperation">+ 添加运营记录</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-i18n="colDealerName">经销商名称</th>
+                                <th data-i18n="colRegion">区域</th>
+                                <th data-i18n="colSalesTarget">销售目标</th>
+                                <th data-i18n="colActualSales">实际销售</th>
+                                <th data-i18n="colCompletionRate">完成率</th>
+                                <th data-i18n="colPerformanceLevel">绩效等级</th>
+                                <th data-i18n="colActions">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="operation-list">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">📈</div>
+                                        <div class="empty-title">暂无运营数据</div>
+                                        <div class="empty-text">添加运营记录以追踪经销商绩效</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 经销商清退页面 -->
+        <div id="exit" class="page">
+            <div class="page-header">
+                <h1 class="page-title" data-i18n="exitTitle">经销商清退管理</h1>
+                <p class="page-subtitle" data-i18n="exitSubtitle">清退流程管理</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title" data-i18n="exitListTitle">清退记录</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="openExitModal()" data-i18n="btnInitiateExit">+ 发起清退</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-i18n="colDealerName">经销商名称</th>
+                                <th data-i18n="colRegion">区域</th>
+                                <th data-i18n="colExitReason">清退原因</th>
+                                <th data-i18n="colStartDate">发起时间</th>
+                                <th data-i18n="colExpectedEndDate">预计完成时间</th>
+                                <th data-i18n="colStatus">状态</th>
+                                <th data-i18n="colActions">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exit-list">
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">🚪</div>
+                                        <div class="empty-title">暂无清退记录</div>
+                                        <div class="empty-text">发起清退流程以管理经销商退出</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 准入申请模态框 -->
+    <div id="admissionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">新增准入申请</h2>
+                <button class="close-btn" onclick="closeAdmissionModal()">×</button>
+            </div>
+            <form id="admissionForm" onsubmit="submitAdmission(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">经销商名称 *</label>
+                        <input type="text" class="form-input" name="dealerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">区域 *</label>
+                        <input type="text" class="form-input" name="region" placeholder="国家/城市/地区" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">模式 *</label>
+                        <select class="form-select" name="model" required>
+                            <option value="">请选择</option>
+                            <option value="经销商">经销商</option>
+                            <option value="总经销商">总经销商</option>
+                            <option value="平行出口商">平行出口商</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">投资方 *</label>
+                        <select class="form-select" name="investor" required>
+                            <option value="">请选择</option>
+                            <option value="国际投资方">国际投资方</option>
+                            <option value="本地投资方">本地投资方</option>
+                            <option value="中国投资方">中国投资方（如和谐集团）</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">形式 *</label>
+                        <select class="form-select" name="format" required>
+                            <option value="">请选择</option>
+                            <option value="4S旗舰店">4S旗舰店（战略市场）</option>
+                            <option value="展厅">展厅</option>
+                            <option value="服务中心">服务中心</option>
+                            <option value="钣喷中心">钣喷中心</option>
+                            <option value="二级经销">二级经销</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">选址</label>
+                        <input type="text" class="form-input" name="location">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">管理团队</label>
+                    <textarea class="form-textarea" name="managementTeam" placeholder="团队成员信息"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">备注</label>
+                    <textarea class="form-textarea" name="notes" placeholder="其他说明"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAdmissionModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">提交申请</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 运营记录模态框 -->
+    <div id="operationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">添加运营记录</h2>
+                <button class="close-btn" onclick="closeOperationModal()">×</button>
+            </div>
+            <form id="operationForm" onsubmit="submitOperation(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">经销商名称 *</label>
+                        <select class="form-select" name="dealerId" id="operationDealerSelect" required>
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">记录月份 *</label>
+                        <input type="month" class="form-input" name="month" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">销售目标 *</label>
+                        <input type="number" class="form-input" name="salesTarget" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">实际销售 *</label>
+                        <input type="number" class="form-input" name="actualSales" min="0" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">利润率（%）</label>
+                        <input type="number" class="form-input" name="margin" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">客户满意度（%）</label>
+                        <input type="number" class="form-input" name="css" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">绩效分析</label>
+                    <textarea class="form-textarea" name="performanceAnalysis" placeholder="绩效评估和分析"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">风险控制</label>
+                    <textarea class="form-textarea" name="riskControl" placeholder="风险评估和控制措施"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeOperationModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存记录</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 清退模态框 -->
+    <div id="exitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">发起清退流程</h2>
+                <button class="close-btn" onclick="closeExitModal()">×</button>
+            </div>
+            <form id="exitForm" onsubmit="submitExit(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">经销商名称 *</label>
+                        <select class="form-select" name="dealerId" id="exitDealerSelect" required>
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">清退类型 *</label>
+                        <select class="form-select" name="exitType" required>
+                            <option value="">请选择</option>
+                            <option value="performance">绩效不达标</option>
+                            <option value="violation">违规违约</option>
+                            <option value="strategic">战略调整</option>
+                            <option value="voluntary">主动退出</option>
+                            <option value="other">其他原因</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">清退原因 *</label>
+                    <textarea class="form-textarea" name="exitReason" placeholder="详细说明清退原因" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">发起时间 *</label>
+                        <input type="date" class="form-input" name="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">预计完成时间 *</label>
+                        <input type="date" class="form-input" name="expectedEndDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">清退方案</label>
+                    <textarea class="form-textarea" name="exitPlan" placeholder="清退执行计划和步骤"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeExitModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">发起清退</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===== 多语言翻译对象 =====
+        const translations = {
+            'zh-CN': {
+                appTitle: '海外经销商管理系统',
+                navDashboard: '仪表盘',
+                navAdmission: '经销商准入',
+                navOperation: '经销商运营',
+                navExit: '经销商清退',
+                btnExport: '导出数据',
+                btnImport: '导入数据',
+                // 仪表盘
+                dashboardTitle: '仪表盘',
+                dashboardSubtitle: '海外经销商全生命周期管理总览',
+                statTotalDealers: '总经销商数',
+                statPendingAdmission: '准入审核中',
+                statActiveDealers: '运营中',
+                statExitDealers: '本月清退',
+                statChangeMonth: '较上月',
+                statPendingApplications: '待处理申请',
+                statNormalOperation: '正常运营',
+                statExitProcessing: '清退处理中',
+                recentActivity: '最近活动',
+                // 表格列头
+                colDealerName: '经销商名称',
+                colRegion: '区域',
+                colModel: '模式',
+                colInvestor: '投资方',
+                colFormat: '形式',
+                colStatus: '状态',
+                colActions: '操作',
+                colLastUpdate: '最后更新',
+                colSalesTarget: '销售目标',
+                colActualSales: '实际销售',
+                colCompletionRate: '完成率',
+                colPerformanceLevel: '绩效等级',
+                colExitReason: '清退原因',
+                colStartDate: '发起时间',
+                colExpectedEndDate: '预计完成时间',
+                // 按钮
+                btnAdd: '+ 新增申请',
+                btnAddOperation: '+ 添加运营记录',
+                btnInitiateExit: '+ 发起清退',
+                btnFilter: '筛选',
+                btnApprove: '通过',
+                btnView: '查看',
+                btnDelete: '删除',
+                btnViewDetails: '查看详情',
+                btnCompleteExit: '完成清退',
+                btnCancel: '取消',
+                btnSubmit: '提交申请',
+                btnSave: '保存记录',
+                btnInitiate: '发起清退',
+                // 准入管理
+                admissionTitle: '经销商准入管理',
+                admissionSubtitle: '策略规划与发展',
+                admissionListTitle: '准入申请列表',
+                // 运营管理
+                operationTitle: '经销商运营管理',
+                operationSubtitle: '渠道职能与管理',
+                operationListTitle: '运营中的经销商',
+                // 清退管理
+                exitTitle: '经销商清退管理',
+                exitSubtitle: '清退流程管理',
+                exitListTitle: '清退记录',
+                // 空状态
+                emptyNoData: '暂无数据',
+                emptyStart: '开始添加经销商信息以查看活动',
+                emptyNoAdmission: '暂无准入申请',
+                emptyAddAdmission: '点击"新增申请"开始添加经销商准入信息',
+                emptyNoOperation: '暂无运营数据',
+                emptyAddOperation: '添加运营记录以追踪经销商绩效',
+                emptyNoExit: '暂无清退记录',
+                emptyAddExit: '发起清退流程以管理经销商退出',
+            },
+            'en-US': {
+                appTitle: 'Overseas Dealer Management System',
+                navDashboard: 'Dashboard',
+                navAdmission: 'Dealer Admission',
+                navOperation: 'Dealer Operation',
+                navExit: 'Dealer Exit',
+                btnExport: 'Export Data',
+                btnImport: 'Import Data',
+                dashboardTitle: 'Dashboard',
+                dashboardSubtitle: 'Overseas Dealer Lifecycle Management Overview',
+                statTotalDealers: 'Total Dealers',
+                statPendingAdmission: 'Pending Admission',
+                statActiveDealers: 'Active',
+                statExitDealers: 'Monthly Exits',
+                statChangeMonth: 'vs Last Month',
+                statPendingApplications: 'Pending Applications',
+                statNormalOperation: 'Normal Operation',
+                statExitProcessing: 'Exit Processing',
+                recentActivity: 'Recent Activity',
+                colDealerName: 'Dealer Name',
+                colRegion: 'Region',
+                colModel: 'Model',
+                colInvestor: 'Investor',
+                colFormat: 'Format',
+                colStatus: 'Status',
+                colActions: 'Actions',
+                colLastUpdate: 'Last Update',
+                colSalesTarget: 'Sales Target',
+                colActualSales: 'Actual Sales',
+                colCompletionRate: 'Completion Rate',
+                colPerformanceLevel: 'Performance',
+                colExitReason: 'Exit Reason',
+                colStartDate: 'Start Date',
+                colExpectedEndDate: 'Expected End',
+                btnAdd: '+ New Application',
+                btnAddOperation: '+ Add Operation Record',
+                btnInitiateExit: '+ Initiate Exit',
+                btnFilter: 'Filter',
+                btnApprove: 'Approve',
+                btnView: 'View',
+                btnDelete: 'Delete',
+                btnViewDetails: 'View Details',
+                btnCompleteExit: 'Complete Exit',
+                btnCancel: 'Cancel',
+                btnSubmit: 'Submit Application',
+                btnSave: 'Save Record',
+                btnInitiate: 'Initiate Exit',
+                admissionTitle: 'Dealer Admission Management',
+                admissionSubtitle: 'Strategy Planning & Development',
+                admissionListTitle: 'Admission Application List',
+                operationTitle: 'Dealer Operation Management',
+                operationSubtitle: 'Channel Function & Management',
+                operationListTitle: 'Active Dealers',
+                exitTitle: 'Dealer Exit Management',
+                exitSubtitle: 'Exit Process Management',
+                exitListTitle: 'Exit Records',
+                emptyNoData: 'No Data',
+                emptyStart: 'Start adding dealer information to view activity',
+                emptyNoAdmission: 'No Admission Applications',
+                emptyAddAdmission: 'Click "New Application" to add dealer admission information',
+                emptyNoOperation: 'No Operation Data',
+                emptyAddOperation: 'Add operation records to track dealer performance',
+                emptyNoExit: 'No Exit Records',
+                emptyAddExit: 'Initiate exit process to manage dealer exits',
+            },
+            'es-ES': {
+                appTitle: 'Sistema de Gestión de Concesionarios Extranjeros',
+                navDashboard: 'Panel',
+                navAdmission: 'Admisión de Concesionarios',
+                navOperation: 'Operación de Concesionarios',
+                navExit: 'Salida de Concesionarios',
+                btnExport: 'Exportar Datos',
+                btnImport: 'Importar Datos',
+                dashboardTitle: 'Panel de Control',
+                dashboardSubtitle: 'Resumen de Gestión del Ciclo de Vida de Concesionarios',
+                statTotalDealers: 'Total de Concesionarios',
+                statPendingAdmission: 'Admisión Pendiente',
+                statActiveDealers: 'Activos',
+                statExitDealers: 'Salidas Mensuales',
+                statChangeMonth: 'vs Mes Anterior',
+                statPendingApplications: 'Solicitudes Pendientes',
+                statNormalOperation: 'Operación Normal',
+                statExitProcessing: 'Procesando Salida',
+                recentActivity: 'Actividad Reciente',
+                colDealerName: 'Nombre del Concesionario',
+                colRegion: 'Región',
+                colModel: 'Modelo',
+                colInvestor: 'Inversor',
+                colFormat: 'Formato',
+                colStatus: 'Estado',
+                colActions: 'Acciones',
+                colLastUpdate: 'Última Actualización',
+                colSalesTarget: 'Objetivo de Ventas',
+                colActualSales: 'Ventas Reales',
+                colCompletionRate: 'Tasa de Cumplimiento',
+                colPerformanceLevel: 'Rendimiento',
+                colExitReason: 'Razón de Salida',
+                colStartDate: 'Fecha de Inicio',
+                colExpectedEndDate: 'Fin Esperado',
+                btnAdd: '+ Nueva Solicitud',
+                btnAddOperation: '+ Añadir Registro',
+                btnInitiateExit: '+ Iniciar Salida',
+                btnFilter: 'Filtrar',
+                btnApprove: 'Aprobar',
+                btnView: 'Ver',
+                btnDelete: 'Eliminar',
+                btnViewDetails: 'Ver Detalles',
+                btnCompleteExit: 'Completar Salida',
+                btnCancel: 'Cancelar',
+                btnSubmit: 'Enviar Solicitud',
+                btnSave: 'Guardar Registro',
+                btnInitiate: 'Iniciar Salida',
+                admissionTitle: 'Gestión de Admisión de Concesionarios',
+                admissionSubtitle: 'Planificación Estratégica y Desarrollo',
+                admissionListTitle: 'Lista de Solicitudes de Admisión',
+                operationTitle: 'Gestión de Operaciones de Concesionarios',
+                operationSubtitle: 'Función de Canal y Gestión',
+                operationListTitle: 'Concesionarios Activos',
+                exitTitle: 'Gestión de Salida de Concesionarios',
+                exitSubtitle: 'Gestión del Proceso de Salida',
+                exitListTitle: 'Registros de Salida',
+                emptyNoData: 'Sin Datos',
+                emptyStart: 'Comience a agregar información de concesionarios para ver actividad',
+                emptyNoAdmission: 'Sin Solicitudes de Admisión',
+                emptyAddAdmission: 'Haga clic en "Nueva Solicitud" para agregar información de admisión',
+                emptyNoOperation: 'Sin Datos de Operación',
+                emptyAddOperation: 'Agregue registros de operación para rastrear el rendimiento',
+                emptyNoExit: 'Sin Registros de Salida',
+                emptyAddExit: 'Inicie el proceso de salida para gestionar las salidas de concesionarios',
+            },
+            'ar-SA': {
+                appTitle: 'نظام إدارة الوكلاء الخارجيين',
+                navDashboard: 'لوحة التحكم',
+                navAdmission: 'قبول الوكلاء',
+                navOperation: 'عمليات الوكلاء',
+                navExit: 'خروج الوكلاء',
+                btnExport: 'تصدير البيانات',
+                btnImport: 'استيراد البيانات',
+                dashboardTitle: 'لوحة التحكم',
+                dashboardSubtitle: 'نظرة عامة على إدارة دورة حياة الوكلاء الخارجيين',
+                statTotalDealers: 'إجمالي الوكلاء',
+                statPendingAdmission: 'قيد القبول',
+                statActiveDealers: 'نشط',
+                statExitDealers: 'المغادرون هذا الشهر',
+                statChangeMonth: 'مقارنة بالشهر الماضي',
+                statPendingApplications: 'الطلبات المعلقة',
+                statNormalOperation: 'تشغيل عادي',
+                statExitProcessing: 'معالجة الخروج',
+                recentActivity: 'النشاط الأخير',
+                colDealerName: 'اسم الوكيل',
+                colRegion: 'المنطقة',
+                colModel: 'النموذج',
+                colInvestor: 'المستثمر',
+                colFormat: 'الشكل',
+                colStatus: 'الحالة',
+                colActions: 'الإجراءات',
+                colLastUpdate: 'آخر تحديث',
+                colSalesTarget: 'هدف المبيعات',
+                colActualSales: 'المبيعات الفعلية',
+                colCompletionRate: 'معدل الإنجاز',
+                colPerformanceLevel: 'مستوى الأداء',
+                colExitReason: 'سبب الخروج',
+                colStartDate: 'تاريخ البدء',
+                colExpectedEndDate: 'التاريخ المتوقع للانتهاء',
+                btnAdd: '+ طلب جديد',
+                btnAddOperation: '+ إضافة سجل تشغيل',
+                btnInitiateExit: '+ بدء الخروج',
+                btnFilter: 'تصفية',
+                btnApprove: 'موافقة',
+                btnView: 'عرض',
+                btnDelete: 'حذف',
+                btnViewDetails: 'عرض التفاصيل',
+                btnCompleteExit: 'إكمال الخروج',
+                btnCancel: 'إلغاء',
+                btnSubmit: 'إرسال الطلب',
+                btnSave: 'حفظ السجل',
+                btnInitiate: 'بدء الخروج',
+                admissionTitle: 'إدارة قبول الوكلاء',
+                admissionSubtitle: 'التخطيط الاستراتيجي والتطوير',
+                admissionListTitle: 'قائمة طلبات القبول',
+                operationTitle: 'إدارة عمليات الوكلاء',
+                operationSubtitle: 'وظيفة القناة والإدارة',
+                operationListTitle: 'الوكلاء النشطون',
+                exitTitle: 'إدارة خروج الوكلاء',
+                exitSubtitle: 'إدارة عملية الخروج',
+                exitListTitle: 'سجلات الخروج',
+                emptyNoData: 'لا توجد بيانات',
+                emptyStart: 'ابدأ بإضافة معلومات الوكلاء لعرض النشاط',
+                emptyNoAdmission: 'لا توجد طلبات قبول',
+                emptyAddAdmission: 'انقر على "طلب جديد" لإضافة معلومات قبول الوكلاء',
+                emptyNoOperation: 'لا توجد بيانات تشغيل',
+                emptyAddOperation: 'أضف سجلات التشغيل لتتبع أداء الوكلاء',
+                emptyNoExit: 'لا توجد سجلات خروج',
+                emptyAddExit: 'ابدأ عملية الخروج لإدارة مغادرة الوكلاء',
+            },
+            'ru-RU': {
+                appTitle: 'Система управления зарубежными дилерами',
+                navDashboard: 'Панель управления',
+                navAdmission: 'Приём дилеров',
+                navOperation: 'Операции дилеров',
+                navExit: 'Выход дилеров',
+                btnExport: 'Экспорт данных',
+                btnImport: 'Импорт данных',
+                dashboardTitle: 'Панель управления',
+                dashboardSubtitle: 'Обзор управления жизненным циклом зарубежных дилеров',
+                statTotalDealers: 'Всего дилеров',
+                statPendingAdmission: 'На рассмотрении',
+                statActiveDealers: 'Активных',
+                statExitDealers: 'Выход в этом месяце',
+                statChangeMonth: 'по сравнению с прошлым месяцем',
+                statPendingApplications: 'Ожидающие заявки',
+                statNormalOperation: 'Нормальная работа',
+                statExitProcessing: 'Обработка выхода',
+                recentActivity: 'Последняя активность',
+                colDealerName: 'Название дилера',
+                colRegion: 'Регион',
+                colModel: 'Модель',
+                colInvestor: 'Инвестор',
+                colFormat: 'Формат',
+                colStatus: 'Статус',
+                colActions: 'Действия',
+                colLastUpdate: 'Последнее обновление',
+                colSalesTarget: 'Цель продаж',
+                colActualSales: 'Фактические продажи',
+                colCompletionRate: 'Процент выполнения',
+                colPerformanceLevel: 'Уровень производительности',
+                colExitReason: 'Причина выхода',
+                colStartDate: 'Дата начала',
+                colExpectedEndDate: 'Ожидаемая дата окончания',
+                btnAdd: '+ Новая заявка',
+                btnAddOperation: '+ Добавить запись',
+                btnInitiateExit: '+ Инициировать выход',
+                btnFilter: 'Фильтр',
+                btnApprove: 'Одобрить',
+                btnView: 'Просмотр',
+                btnDelete: 'Удалить',
+                btnViewDetails: 'Просмотр деталей',
+                btnCompleteExit: 'Завершить выход',
+                btnCancel: 'Отмена',
+                btnSubmit: 'Отправить заявку',
+                btnSave: 'Сохранить запись',
+                btnInitiate: 'Инициировать выход',
+                admissionTitle: 'Управление приёмом дилеров',
+                admissionSubtitle: 'Стратегическое планирование и развитие',
+                admissionListTitle: 'Список заявок на приём',
+                operationTitle: 'Управление операциями дилеров',
+                operationSubtitle: 'Функция канала и управление',
+                operationListTitle: 'Активные дилеры',
+                exitTitle: 'Управление выходом дилеров',
+                exitSubtitle: 'Управление процессом выхода',
+                exitListTitle: 'Записи о выходе',
+                emptyNoData: 'Нет данных',
+                emptyStart: 'Начните добавлять информацию о дилерах для просмотра активности',
+                emptyNoAdmission: 'Нет заявок на приём',
+                emptyAddAdmission: 'Нажмите "Новая заявка" для добавления информации о приёме дилеров',
+                emptyNoOperation: 'Нет данных об операциях',
+                emptyAddOperation: 'Добавьте записи об операциях для отслеживания производительности дилеров',
+                emptyNoExit: 'Нет записей о выходе',
+                emptyAddExit: 'Инициируйте процесс выхода для управления выходом дилеров',
+            }
+        };
+
+        // ===== 当前语言 =====
+        let currentLang = localStorage.getItem('language') || 'zh-CN';
+
+        // ===== 翻译函数 =====
+        function translate(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function updatePageLanguage() {
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = translate(key);
+            });
+
+            // 更新HTML的lang和dir属性
+            document.documentElement.lang = currentLang;
+            document.body.dir = currentLang === 'ar-SA' ? 'rtl' : 'ltr';
+
+            // 更新当前语言显示
+            const languageNames = {
+                'zh-CN': '中文',
+                'en-US': 'English',
+                'es-ES': 'Español',
+                'ar-SA': 'العربية',
+                'ru-RU': 'Русский'
+            };
+            document.getElementById('currentLanguage').textContent = languageNames[currentLang];
+
+            // 更新语言选择器的active状态
+            document.querySelectorAll('.language-option').forEach(option => {
+                option.classList.toggle('active', option.dataset.lang === currentLang);
+            });
+
+            // 重新渲染页面内容
+            updateDashboard();
+            renderAdmissionList();
+            renderOperationList();
+            renderExitList();
+        }
+
+        // ===== 语言选择器事件 =====
+        document.addEventListener('DOMContentLoaded', () => {
+            const languageBtn = document.getElementById('languageBtn');
+            const languageDropdown = document.getElementById('languageDropdown');
+
+            // 切换下拉菜单
+            languageBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                languageDropdown.classList.toggle('active');
+            });
+
+            // 选择语言
+            document.querySelectorAll('.language-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    currentLang = option.dataset.lang;
+                    localStorage.setItem('language', currentLang);
+                    updatePageLanguage();
+                    languageDropdown.classList.remove('active');
+                });
+            });
+
+            // 点击外部关闭下拉菜单
+            document.addEventListener('click', () => {
+                languageDropdown.classList.remove('active');
+            });
+
+            // 初始化语言
+            updatePageLanguage();
+        });
+
+        // ===== 数据存储 =====
+        let dealers = JSON.parse(localStorage.getItem('dealers')) || [];
+        let operations = JSON.parse(localStorage.getItem('operations')) || [];
+        let exits = JSON.parse(localStorage.getItem('exits')) || [];
+
+        // ===== 页面切换 =====
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 更新标签状态
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // 更新页面显示
+                const pageId = tab.dataset.page;
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+
+                // 刷新数据
+                if (pageId === 'dashboard') updateDashboard();
+                if (pageId === 'admission') renderAdmissionList();
+                if (pageId === 'operation') renderOperationList();
+                if (pageId === 'exit') renderExitList();
+            });
+        });
+
+        // ===== 模态框控制 =====
+        function openAdmissionModal() {
+            document.getElementById('admissionModal').classList.add('active');
+        }
+
+        function closeAdmissionModal() {
+            document.getElementById('admissionModal').classList.remove('active');
+            document.getElementById('admissionForm').reset();
+        }
+
+        function openOperationModal() {
+            updateOperationDealerSelect();
+            document.getElementById('operationModal').classList.add('active');
+        }
+
+        function closeOperationModal() {
+            document.getElementById('operationModal').classList.remove('active');
+            document.getElementById('operationForm').reset();
+        }
+
+        function openExitModal() {
+            updateExitDealerSelect();
+            document.getElementById('exitModal').classList.add('active');
+        }
+
+        function closeExitModal() {
+            document.getElementById('exitModal').classList.remove('active');
+            document.getElementById('exitForm').reset();
+        }
+
+        // ===== 准入申请提交 =====
+        function submitAdmission(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const dealer = {
+                id: Date.now(),
+                dealerName: formData.get('dealerName'),
+                region: formData.get('region'),
+                model: formData.get('model'),
+                investor: formData.get('investor'),
+                format: formData.get('format'),
+                location: formData.get('location'),
+                managementTeam: formData.get('managementTeam'),
+                notes: formData.get('notes'),
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            dealers.push(dealer);
+            localStorage.setItem('dealers', JSON.stringify(dealers));
+
+            closeAdmissionModal();
+            renderAdmissionList();
+            updateDashboard();
+
+            alert('准入申请已提交！');
+        }
+
+        // ===== 运营记录提交 =====
+        function submitOperation(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const salesTarget = parseFloat(formData.get('salesTarget'));
+            const actualSales = parseFloat(formData.get('actualSales'));
+            const completionRate = (actualSales / salesTarget * 100).toFixed(2);
+
+            const operation = {
+                id: Date.now(),
+                dealerId: formData.get('dealerId'),
+                month: formData.get('month'),
+                salesTarget: salesTarget,
+                actualSales: actualSales,
+                completionRate: completionRate,
+                margin: formData.get('margin'),
+                css: formData.get('css'),
+                performanceAnalysis: formData.get('performanceAnalysis'),
+                riskControl: formData.get('riskControl'),
+                createdAt: new Date().toISOString()
+            };
+
+            operations.push(operation);
+            localStorage.setItem('operations', JSON.stringify(operations));
+
+            closeOperationModal();
+            renderOperationList();
+            updateDashboard();
+
+            alert('运营记录已保存！');
+        }
+
+        // ===== 清退提交 =====
+        function submitExit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+
+            const exit = {
+                id: Date.now(),
+                dealerId: formData.get('dealerId'),
+                exitType: formData.get('exitType'),
+                exitReason: formData.get('exitReason'),
+                startDate: formData.get('startDate'),
+                expectedEndDate: formData.get('expectedEndDate'),
+                exitPlan: formData.get('exitPlan'),
+                status: 'processing',
+                createdAt: new Date().toISOString()
+            };
+
+            exits.push(exit);
+            localStorage.setItem('exits', JSON.stringify(exits));
+
+            // 更新经销商状态
+            const dealer = dealers.find(d => d.id == formData.get('dealerId'));
+            if (dealer) {
+                dealer.status = 'exiting';
+                localStorage.setItem('dealers', JSON.stringify(dealers));
+            }
+
+            closeExitModal();
+            renderExitList();
+            updateDashboard();
+
+            alert('清退流程已发起！');
+        }
+
+        // ===== 渲染准入列表 =====
+        function renderAdmissionList() {
+            const tbody = document.getElementById('admission-list');
+            const admissionDealers = dealers.filter(d => d.status === 'pending' || d.status === 'review');
+
+            if (admissionDealers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="empty-icon">🏢</div>
+                                <div class="empty-title">暂无准入申请</div>
+                                <div class="empty-text">点击"新增申请"开始添加经销商准入信息</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = admissionDealers.map(dealer => `
+                <tr>
+                    <td>${dealer.dealerName}</td>
+                    <td>${dealer.region}</td>
+                    <td>${dealer.model}</td>
+                    <td>${dealer.investor}</td>
+                    <td>${dealer.format}</td>
+                    <td><span class="status-badge status-pending">${getStatusText(dealer.status)}</span></td>
+                    <td>
+                        <button class="action-btn" onclick="approveDealer(${dealer.id})">通过</button>
+                        <button class="action-btn" onclick="viewDealer(${dealer.id})">查看</button>
+                        <button class="action-btn delete-btn" onclick="deleteDealer(${dealer.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ===== 渲染运营列表 =====
+        function renderOperationList() {
+            const tbody = document.getElementById('operation-list');
+            const activeDealers = dealers.filter(d => d.status === 'active');
+
+            if (activeDealers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="empty-icon">📈</div>
+                                <div class="empty-title">暂无运营数据</div>
+                                <div class="empty-text">添加运营记录以追踪经销商绩效</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = activeDealers.map(dealer => {
+                const latestOp = operations.filter(op => op.dealerId == dealer.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+
+                return `
+                    <tr>
+                        <td>${dealer.dealerName}</td>
+                        <td>${dealer.region}</td>
+                        <td>${latestOp ? latestOp.salesTarget : '-'}</td>
+                        <td>${latestOp ? latestOp.actualSales : '-'}</td>
+                        <td>${latestOp ? latestOp.completionRate + '%' : '-'}</td>
+                        <td><span class="status-badge status-active">${getPerformanceLevel(latestOp ? latestOp.completionRate : 0)}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="viewOperationDetails(${dealer.id})">查看详情</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ===== 渲染清退列表 =====
+        function renderExitList() {
+            const tbody = document.getElementById('exit-list');
+
+            if (exits.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="empty-icon">🚪</div>
+                                <div class="empty-title">暂无清退记录</div>
+                                <div class="empty-text">发起清退流程以管理经销商退出</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = exits.map(exit => {
+                const dealer = dealers.find(d => d.id == exit.dealerId);
+                return `
+                    <tr>
+                        <td>${dealer ? dealer.dealerName : '未知'}</td>
+                        <td>${dealer ? dealer.region : '-'}</td>
+                        <td>${exit.exitReason.substring(0, 30)}...</td>
+                        <td>${new Date(exit.startDate).toLocaleDateString()}</td>
+                        <td>${new Date(exit.expectedEndDate).toLocaleDateString()}</td>
+                        <td><span class="status-badge status-review">${getExitStatusText(exit.status)}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="viewExitDetails(${exit.id})">查看详情</button>
+                            <button class="action-btn" onclick="completeExit(${exit.id})">完成清退</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ===== 更新仪表盘 =====
+        function updateDashboard() {
+            document.getElementById('total-dealers').textContent = dealers.length;
+            document.getElementById('pending-admission').textContent = dealers.filter(d => d.status === 'pending').length;
+            document.getElementById('active-dealers').textContent = dealers.filter(d => d.status === 'active').length;
+            document.getElementById('exit-dealers').textContent = exits.filter(e => e.status === 'processing').length;
+
+            // 更新最近活动
+            const recentActivity = [...dealers]
+                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                .slice(0, 5);
+
+            const tbody = document.getElementById('recent-activity');
+            if (recentActivity.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <div class="empty-icon">📊</div>
+                                <div class="empty-title">暂无数据</div>
+                                <div class="empty-text">开始添加经销商信息以查看活动</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = recentActivity.map(dealer => `
+                    <tr>
+                        <td>${dealer.dealerName}</td>
+                        <td>${dealer.region}</td>
+                        <td><span class="status-badge ${getStatusClass(dealer.status)}">${getStatusText(dealer.status)}</span></td>
+                        <td>${new Date(dealer.updatedAt).toLocaleDateString()}</td>
+                        <td><button class="action-btn" onclick="viewDealer(${dealer.id})">查看</button></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // ===== 辅助函数 =====
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '待审核',
+                'review': '审核中',
+                'active': '运营中',
+                'exiting': '清退中',
+                'exited': '已清退'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getStatusClass(status) {
+            const classMap = {
+                'pending': 'status-pending',
+                'review': 'status-review',
+                'active': 'status-active',
+                'exiting': 'status-rejected',
+                'exited': 'status-rejected'
+            };
+            return classMap[status] || 'status-pending';
+        }
+
+        function getExitStatusText(status) {
+            const statusMap = {
+                'processing': '进行中',
+                'completed': '已完成'
+            };
+            return statusMap[status] || status;
+        }
+
+        function getPerformanceLevel(completionRate) {
+            if (completionRate >= 100) return 'A级 优秀';
+            if (completionRate >= 80) return 'B级 良好';
+            if (completionRate >= 60) return 'C级 合格';
+            return 'D级 待改进';
+        }
+
+        function approveDealer(dealerId) {
+            const dealer = dealers.find(d => d.id === dealerId);
+            if (dealer) {
+                dealer.status = 'active';
+                dealer.updatedAt = new Date().toISOString();
+                localStorage.setItem('dealers', JSON.stringify(dealers));
+                renderAdmissionList();
+                updateDashboard();
+                alert('经销商已通过审核！');
+            }
+        }
+
+        function deleteDealer(dealerId) {
+            if (confirm('确定要删除这个经销商吗？')) {
+                dealers = dealers.filter(d => d.id !== dealerId);
+                localStorage.setItem('dealers', JSON.stringify(dealers));
+                renderAdmissionList();
+                updateDashboard();
+            }
+        }
+
+        function viewDealer(dealerId) {
+            const dealer = dealers.find(d => d.id === dealerId);
+            if (dealer) {
+                alert(`经销商详情：\n\n名称：${dealer.dealerName}\n区域：${dealer.region}\n模式：${dealer.model}\n投资方：${dealer.investor}\n形式：${dealer.format}\n选址：${dealer.location || '未填写'}\n管理团队：${dealer.managementTeam || '未填写'}\n备注：${dealer.notes || '无'}`);
+            }
+        }
+
+        function viewOperationDetails(dealerId) {
+            const dealer = dealers.find(d => d.id === dealerId);
+            const dealerOps = operations.filter(op => op.dealerId == dealerId);
+
+            if (dealerOps.length === 0) {
+                alert('该经销商暂无运营记录');
+                return;
+            }
+
+            const details = dealerOps.map(op =>
+                `月份：${op.month}\n销售目标：${op.salesTarget}\n实际销售：${op.actualSales}\n完成率：${op.completionRate}%\n利润率：${op.margin}%\n客户满意度：${op.css}%\n`
+            ).join('\n---\n');
+
+            alert(`${dealer.dealerName} 运营详情：\n\n${details}`);
+        }
+
+        function viewExitDetails(exitId) {
+            const exit = exits.find(e => e.id === exitId);
+            const dealer = dealers.find(d => d.id == exit.dealerId);
+
+            if (exit) {
+                alert(`清退详情：\n\n经销商：${dealer ? dealer.dealerName : '未知'}\n清退类型：${exit.exitType}\n清退原因：${exit.exitReason}\n发起时间：${exit.startDate}\n预计完成：${exit.expectedEndDate}\n清退方案：${exit.exitPlan || '未填写'}`);
+            }
+        }
+
+        function completeExit(exitId) {
+            if (confirm('确定完成这个清退流程吗？')) {
+                const exit = exits.find(e => e.id === exitId);
+                if (exit) {
+                    exit.status = 'completed';
+
+                    const dealer = dealers.find(d => d.id == exit.dealerId);
+                    if (dealer) {
+                        dealer.status = 'exited';
+                        dealer.updatedAt = new Date().toISOString();
+                        localStorage.setItem('dealers', JSON.stringify(dealers));
+                    }
+
+                    localStorage.setItem('exits', JSON.stringify(exits));
+                    renderExitList();
+                    updateDashboard();
+                    alert('清退流程已完成！');
+                }
+            }
+        }
+
+        function updateOperationDealerSelect() {
+            const select = document.getElementById('operationDealerSelect');
+            const activeDealers = dealers.filter(d => d.status === 'active');
+
+            select.innerHTML = '<option value="">请选择</option>' +
+                activeDealers.map(d => `<option value="${d.id}">${d.dealerName} - ${d.region}</option>`).join('');
+        }
+
+        function updateExitDealerSelect() {
+            const select = document.getElementById('exitDealerSelect');
+            const activeDealers = dealers.filter(d => d.status === 'active');
+
+            select.innerHTML = '<option value="">请选择</option>' +
+                activeDealers.map(d => `<option value="${d.id}">${d.dealerName} - ${d.region}</option>`).join('');
+        }
+
+        // ===== 数据导入导出 =====
+        function exportData() {
+            const data = {
+                dealers: dealers,
+                operations: operations,
+                exits: exits,
+                exportTime: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `dealer-management-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            alert('数据已导出！');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+
+                        if (confirm('导入数据将覆盖现有数据，确定继续吗？')) {
+                            dealers = data.dealers || [];
+                            operations = data.operations || [];
+                            exits = data.exits || [];
+
+                            localStorage.setItem('dealers', JSON.stringify(dealers));
+                            localStorage.setItem('operations', JSON.stringify(operations));
+                            localStorage.setItem('exits', JSON.stringify(exits));
+
+                            updateDashboard();
+                            renderAdmissionList();
+                            renderOperationList();
+                            renderExitList();
+
+                            alert('数据导入成功！');
+                        }
+                    } catch (error) {
+                        alert('导入失败：文件格式错误');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // ===== 初始化 =====
+        window.addEventListener('load', () => {
+            updateDashboard();
+            renderAdmissionList();
+            renderOperationList();
+            renderExitList();
+        });
+
+        // ===== 启动动画控制 =====
+        window.addEventListener('DOMContentLoaded', () => {
+            const splashScreen = document.getElementById('splashScreen');
+            const appContainer = document.getElementById('appContainer');
+
+            // 3.5秒后开始淡出启动屏幕
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+
+                // 淡出动画完成后显示主应用
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    appContainer.classList.add('show');
+                }, 800);
+            }, 3500);
+        });
+    </script>
+    </div> <!-- 关闭 app-container -->
+</body>
+</html>

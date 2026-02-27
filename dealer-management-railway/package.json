@@ -1,0 +1,23 @@
+{
+  "name": "dealer-management-system",
+  "version": "1.0.0",
+  "description": "Overseas Dealer Management System - Railway Deployment",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "dealer",
+    "management",
+    "system",
+    "railway"
+  ],
+  "author": "Li Xiang Automotive",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
